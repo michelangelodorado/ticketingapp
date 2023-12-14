@@ -1,0 +1,109 @@
+<!-- main.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #itemContainer {
+            max-width: 600px;
+            margin: auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        input {
+            width: 50px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Buy Ticket</h1>
+
+    <div id="itemContainer">
+        <!-- Product details will be dynamically added here -->
+    </div>
+
+    <script>
+        // Function to fetch and display product details
+        function fetchProductDetails() {
+            fetch('/api/products')
+                .then(response => response.json())
+                .then(products => {
+                    // Assuming there's only one product in this example
+                    const product = products[0];
+
+                    // Update the HTML with product details
+                    document.getElementById('itemContainer').innerHTML = `
+                        <h2>${product.name}</h2>
+                        <img src="${product.image}" alt="${product.name}">
+                        <p>Price: S$${product.price.toFixed(2)}</p>
+                        <p>Details: ${product.details}</p>
+                        <p>When: ${product.date}</p>
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" value="1" min="1" max="4">
+                        <button onclick="buy('${product.name}', ${product.price})">Buy</button>
+                    `;
+                })
+                .catch(error => console.error('Error fetching product details:', error));
+        }
+
+        // Function to handle the "Buy" button click
+        function buy(itemName, itemPrice) {
+            const quantity = document.getElementById('quantity').value;
+            if (quantity > 4) {
+              alert("Quantity cannot exceed 4");
+              //quantityInput.value = 4;
+            } 
+            else
+            {
+            // Make a request to the server to add the item to the cart
+            fetch('/buy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemName,
+                    itemPrice,
+                    quantity: parseInt(quantity),
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`You have bought ${quantity} ${itemName}(s) at S$${itemPrice.toFixed(2)} each!`);
+                } else {
+                    alert('Failed to add item to cart. Please try again.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+            }
+        }
+
+        fetchProductDetails();
+    </script>
+</body>
+</html>
+
